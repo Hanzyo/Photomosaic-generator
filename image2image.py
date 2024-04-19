@@ -7,6 +7,7 @@ import numpy as np
 import glob
 from itertools import product
 
+OUTPUT_SCALE = 5
 
 def get_args():
     parser = argparse.ArgumentParser("Viet Nguyen Photomosaic")
@@ -32,9 +33,12 @@ def get_component_images(path, size):
 def main(opt):
     input_image = cv2.imread(opt.input, cv2.IMREAD_COLOR)
     height, width, num_channels = input_image.shape
-    blank_image = np.zeros((height, width, 3), np.uint8)
+    out_h = height * OUTPUT_SCALE
+    out_w = width * OUTPUT_SCALE
+    input_image = cv2.resize(input_image, (out_w, out_h))
+    blank_image = np.zeros((out_h, out_w, 3), np.uint8)
     images, avg_colors = get_component_images(opt.pool, opt.stride)
-    for i, j in product(range(int(width / opt.stride)), range(int(height / opt.stride))):
+    for i, j in product(range(int(out_w / opt.stride)), range(int(out_h / opt.stride))):
         partial_input_image = input_image[j * opt.stride: (j + 1) * opt.stride,
                               i * opt.stride: (i + 1) * opt.stride, :]
         partial_avg_color = np.sum(np.sum(partial_input_image, axis=0), axis=0) / (opt.stride ** 2)
